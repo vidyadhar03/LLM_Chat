@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with {{ model_name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            text-align: center;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 50%;
+            max-width: 600px;
+        }
+        h1 {
+            font-weight: 600;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 10px; /* Decreased margin */
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: left;
+        }
+        .message {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+        }
+        .message img {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+        }
+        .message-details {
+            display: flex;
+            flex-direction: column;
+        }
+        .message-role {
+            font-weight: bold;
+        }
+        .message-content {
+            margin-top: 5px;
+        }
+        .input-container {
+            margin-bottom: 10px; /* Decreased margin */
+        }
+        input[type="text"] {
+            width: calc(100% - 22px); /* Adjust width to fit within the container */
+            padding: 10px; /* Adjust padding for better fit */
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 5px; /* Add some margin between buttons */
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    {% load static %}
+    <div class="container">
+        <h1>Chat with {{ model_name }}</h1>
+        <div id="messages-container">
+            <!-- Messages div will be inserted here if chat starts -->
+        </div>
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Send a message to {{ model_name }}">
+        </div>
+        <div class="button-container">
+            <button onclick="goBackHome()">Back Home/Change Model</button>
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+    <script>
+        let chatHistory = [];
+
+        function renderMessages() {
+            let messagesContainer = document.getElementById('messages-container');
+            if (chatHistory.length > 0) {
+                let messagesDiv = document.getElementById('messages');
+                if (!messagesDiv) {
+                    messagesDiv = document.createElement('div');
+                    messagesDiv.id = 'messages';
+                    messagesDiv.classList.add('messages');
+                    messagesContainer.appendChild(messagesDiv);
+                }
+                messagesDiv.innerHTML = '';
+                chatHistory.forEach(message => {
+                    const messageElement = document.createElement('div');
+                    messageElement.classList.add('message');
+
+                    const imgElement = document.createElement('img');
+                    imgElement.src = "{% static 'chat/user-person-profile-block-account-circle.svg' %}";
+
+                    const detailsElement = document.createElement('div');
+                    detailsElement.classList.add('message-details');
+
+                    const roleElement = document.createElement('div');
+                    roleElement.classList.add('message-role');
+                    roleElement.textContent = message.role;
+
+                    const contentElement = document.createElement('div');
+                    contentElement.classList.add('message-content');
+                    contentElement.textContent = message.content;
+
+                    detailsElement.appendChild(roleElement);
+                    detailsElement.appendChild(contentElement);
+
+                    messageElement.appendChild(imgElement);
+                    messageElement.appendChild(detailsElement);
+
+                    messagesDiv.appendChild(messageElement);
+                });
+
+                // Scroll to the bottom of the messages div
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            } else {
+                messagesContainer.innerHTML = '';
+            }
+        }
+
+        function getDummyResponse(model, userMessage) {
+            if (model === 'ModelA') {
+                return `ModelA response to: ${userMessage}`;
+            } else if (model === 'ModelB') {
+                return `ModelB response to: ${userMessage}`;
+            }
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const userMessage = messageInput.value;
+            if (userMessage) {
+                const model = '{{ model_name }}'; // Pass model name from template context
+                const username = '{{ username }}'; // Pass username from template context
+                chatHistory.push({ role: 'You', content: userMessage });
+                renderMessages();
+                messageInput.value = '';
+
+                // Save the user message to the server
+                saveMessageToServer(username, model, 'You', userMessage);
+
+                const modelResponse = getDummyResponse(model, userMessage);
+                chatHistory.push({ role: model, content: modelResponse });
+                renderMessages();
+
+                // Save the model response to the server
+                saveMessageToServer(username, model, model, modelResponse);
+            } else {
+                alert('Please enter a message.');
+            }
+        }
+
+        function saveMessageToServer(username, model, role, content) {
+            const data = {
+                username: username,
+                model: model,
+                role: role,
+                content: content
+            };
+
+            fetch('{% url "save_message" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(data)
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.status === 'failure') {
+                      alert('Failed to save message');
+                  }
+              });
+        }
+
+        function goBackHome() {
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat History</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            text-align: center;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 50%;
+            max-width: 600px;
+        }
+        h1 {
+            font-weight: 600;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .session {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 18px; /* Adjusted for smaller model name */
+        }
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: left;
+        }
+        .message {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+        }
+        .message img {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+        }
+        .message-details {
+            display: flex;
+            flex-direction: column;
+        }
+        .message-role {
+            font-weight: bold;
+        }
+        .message-content {
+            margin-top: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .button-container {
+            display: flex;
+            justify-content: flex-start;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    {% load static %}
+    <div class="container">
+        {% if user_chat %}
+            <h1>Chat History for {{ user_chat.username }}</h1>
+            {% for session in user_chat.sessions %}
+                <div class="session">
+                    <span>{{ forloop.counter }}. {{ session.model }}</span>
+                    <button onclick="viewSession('{{ session.model }}')">View Session</button>
+                </div>
+            {% endfor %}
+            <div id="messages-container" class="messages" style="display: none;">
+                <!-- Messages div will be inserted here -->
+            </div>
+        {% else %}
+            <h1>No Chat History Found for "{{ username }}"</h1>
+        {% endif %}
+        <div class="button-container">
+            <button onclick="goBackHome()">Back Home/Change Model</button>
+        </div>
+    </div>
+    <script>
+        function viewSession(model) {
+            const username = "{{ user_chat.username }}";
+            fetch(`/get_session_messages/${username}/${model}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const messagesContainer = document.getElementById('messages-container');
+                        messagesContainer.style.display = 'block';
+                        messagesContainer.innerHTML = '';
+                        data.messages.forEach(message => {
+                            const messageElement = document.createElement('div');
+                            messageElement.classList.add('message');
+
+                            const imgElement = document.createElement('img');
+                            imgElement.src = "{% static 'chat/user-person-profile-block-account-circle.svg' %}";
+
+                            const detailsElement = document.createElement('div');
+                            detailsElement.classList.add('message-details');
+
+                            const roleElement = document.createElement('div');
+                            roleElement.classList.add('message-role');
+                            roleElement.textContent = message.role;
+
+                            const contentElement = document.createElement('div');
+                            contentElement.classList.add('message-content');
+                            contentElement.textContent = message.content;
+
+                            detailsElement.appendChild(roleElement);
+                            detailsElement.appendChild(contentElement);
+
+                            messageElement.appendChild(imgElement);
+                            messageElement.appendChild(detailsElement);
+
+                            messagesContainer.appendChild(messageElement);
+                        });
+                    } else {
+                        alert('Failed to load session messages.');
+                    }
+                });
+        }
+
+        function goBackHome() {
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            text-align: center;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-weight: 600;
+            font-size: 24px;
+            margin-bottom: 10px; /* Decreased bottom margin */
+        }
+        .footer {
+            text-align: right;
+            font-size: 12px;
+            margin-top: 0; /* Removed top margin */
+            margin-bottom: 20px; /* Added bottom margin */
+        }
+        .model-instruction {
+            margin-bottom: 10px; /* Added bottom margin */
+            font-size: 14px; /* Smaller text size */
+        }
+        .model-options {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .model-option {
+            margin: 0 10px;
+        }
+        .model-option label {
+            margin-left: 5px;
+        }
+        .buttons-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            margin-bottom: 20px; /* Added bottom margin */
+            height: 40px; /* Increased height */
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to LLM Chat</h1>
+        <div class="footer">- Made by Maheedhar</div>
+        <form method="post" action="">
+            {% csrf_token %}
+            <div>
+                <input type="text" name="username" placeholder="Enter your name" required>
+            </div>
+            <div class="model-instruction">Select a LLM Model from below:</div>
+            <div class="model-options">
+                <div class="model-option">
+                    <input type="radio" id="modelA" name="model" value="ModelA" required>
+                    <label for="modelA">Model A</label>
+                </div>
+                <div class="model-option">
+                    <input type="radio" id="modelB" name="model" value="ModelB" required>
+                    <label for="modelB">Model B</label>
+                </div>
+            </div>
+            <div class="buttons-container">
+                <button type="submit">Start Chat</button>
+                <button type="button" onclick="viewHistory()">Chat History</button>
+            </div>
+        </form>
+    </div>
+    <script>
+        function viewHistory() {
+            const username = document.querySelector('input[name="username"]').value;
+            if (username) {
+                window.location.href = `/history/${username}`;
+            } else {
+                alert('Please enter your name to view chat history.');
+            }
+        }
+    </script>
+</body>
+</html>
