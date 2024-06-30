@@ -75,8 +75,10 @@ WSGI_APPLICATION = 'llmchat.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 # MongoDB connection string
+# settings.py
+HUGGING_FACE_API_TOKEN = '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'
 MONGO_DB_NAME = "llmchat"
-MONGO_URI = ""  # Replace with your actual MongoDB connection string
+MONGO_URI = "mongodb+srv://vidyadhariitkgp:m5GqJPngbahXTZpB@cluster0.24ovbgg.mongodb.net/"  # Replace with your actual MongoDB connection string
 
 # DATABASES = {
 #     'default': {

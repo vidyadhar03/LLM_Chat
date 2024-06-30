@@ -103,7 +103,7 @@
     </div>
     <script>
         let chatHistory = [];
-
+    
         function renderMessages() {
             let messagesContainer = document.getElementById('messages-container');
             if (chatHistory.length > 0) {
@@ -118,46 +118,76 @@
                 chatHistory.forEach(message => {
                     const messageElement = document.createElement('div');
                     messageElement.classList.add('message');
-
+    
                     const imgElement = document.createElement('img');
                     imgElement.src = "{% static 'chat/user-person-profile-block-account-circle.svg' %}";
-
+    
                     const detailsElement = document.createElement('div');
                     detailsElement.classList.add('message-details');
-
+    
                     const roleElement = document.createElement('div');
                     roleElement.classList.add('message-role');
                     roleElement.textContent = message.role;
-
+    
                     const contentElement = document.createElement('div');
                     contentElement.classList.add('message-content');
                     contentElement.textContent = message.content;
-
+    
                     detailsElement.appendChild(roleElement);
                     detailsElement.appendChild(contentElement);
-
+    
                     messageElement.appendChild(imgElement);
                     messageElement.appendChild(detailsElement);
-
+    
                     messagesDiv.appendChild(messageElement);
                 });
-
+    
                 // Scroll to the bottom of the messages div
                 messagesDiv.scrollTop = messagesDiv.scrollHeight;
             } else {
                 messagesContainer.innerHTML = '';
             }
         }
-
-        function getDummyResponse(model, userMessage) {
-            if (model === 'ModelA') {
-                return `ModelA response to: ${userMessage}`;
-            } else if (model === 'ModelB') {
-                return `ModelB response to: ${userMessage}`;
+    
+        async function getActualResponse(model, userMessage) {
+            const API_URLS = {
+                'GPT-2': 'https://api-inference.huggingface.co/models/gpt2',
+                'BlenderBot': 'https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill'
+            };
+            const API_URL = API_URLS[model];
+            const headers = {
+                "Authorization": `Bearer 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`,
+                "Content-Type": "application/json"
+            };
+            const payload = { "inputs": userMessage };
+    
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(payload)
+                });
+    
+                if (response.ok) {
+                    console.log(response)
+                    const result = await response.json();
+                    console.log(result);
+                    if (model === 'GPT-2') {
+                        return result[0]['generated_text'];
+                    } else if (model === 'BlenderBot') {
+                        return result[0]['generated_text'];
+                    }
+                } else {
+                    console.log(response)
+                    return "Error: Could not fetch response";
+                }
+            } catch (error) {
+                console.log(error)
+                return "Error: Could not fetch response";
             }
         }
-
-        function sendMessage() {
+    
+        async function sendMessage() {
             const messageInput = document.getElementById('messageInput');
             const userMessage = messageInput.value;
             if (userMessage) {
@@ -166,21 +196,21 @@
                 chatHistory.push({ role: 'You', content: userMessage });
                 renderMessages();
                 messageInput.value = '';
-
+    
                 // Save the user message to the server
                 saveMessageToServer(username, model, 'You', userMessage);
-
-                const modelResponse = getDummyResponse(model, userMessage);
+    
+                const modelResponse = await getActualResponse(model, userMessage);
                 chatHistory.push({ role: model, content: modelResponse });
                 renderMessages();
-
+    
                 // Save the model response to the server
                 saveMessageToServer(username, model, model, modelResponse);
             } else {
                 alert('Please enter a message.');
             }
         }
-
+    
         function saveMessageToServer(username, model, role, content) {
             const data = {
                 username: username,
@@ -188,7 +218,7 @@
                 role: role,
                 content: content
             };
-
+    
             fetch('{% url "save_message" %}', {
                 method: 'POST',
                 headers: {
@@ -203,10 +233,10 @@
                   }
               });
         }
-
+    
         function goBackHome() {
             window.location.href = '/';
         }
-    </script>
+    </script>    
 </body>
 </html>
