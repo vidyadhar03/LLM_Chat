@@ -1,7 +1,12 @@
 from pymongo import MongoClient
+import certifi
 from django.conf import settings
 
-client = MongoClient(settings.MONGO_URI)
+client = MongoClient(
+    settings.MONGO_URI,
+    tlsCAFile=certifi.where(),
+    tlsAllowInvalidCertificates=True
+)
 db = client[settings.MONGO_DB_NAME]
 
 class UserChats:

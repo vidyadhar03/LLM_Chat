@@ -92,10 +92,10 @@ MONGO_URI = "mongodb+srv://vidyadhariitkgp:m5GqJPngbahXTZpB@cluster0.24ovbgg.mon
 # }
 
 # Use pymongo for database interactions
-from pymongo import MongoClient
+# from pymongo import MongoClient
 
-client = MongoClient(MONGO_URI)
-db = client[MONGO_DB_NAME]
+# client = MongoClient(MONGO_URI)
+# db = client[MONGO_DB_NAME]
 
 
 # Password validation
